@@ -48,6 +48,7 @@ if __name__ == '__main__':
     run = True
     while run:
         draw(WIN)
+        pygame.display.set_caption(f'Checkers - player {game.whose_turn()}')
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
