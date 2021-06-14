@@ -17,7 +17,7 @@ def draw_board(win):
 def abs_pos_piece(piece):
     abs_pos = piece.position - 1
     row = abs_pos // 4
-    col = abs_pos % 4 * 2 + row % 2
+    col = abs_pos % 4 * 2 + (row + 1) % 2
     return SQUARE_SIZE * col + SQUARE_SIZE // 2, SQUARE_SIZE * row + SQUARE_SIZE // 2
 
 
