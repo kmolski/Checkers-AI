@@ -24,7 +24,7 @@ def max_elements(iterable, key=lambda x: x):
 def ucs1_evaluator(exploration_factor, root_player, node):
     # https://en.wikipedia.org/wiki/Monte_Carlo_tree_search#Exploration_and_exploitation
     move_strength = node.net_score / max(1, node.visit_count)
-    exploration_part = (exploration_factor * (node.policy_value or 1) *
+    exploration_part = (exploration_factor * node.policy_value *
                         sqrt(log(node.parent.visit_count) / max(1, node.visit_count)))
     return (1 if root_player == node.parent.player else -1) * move_strength + exploration_part
 
@@ -104,5 +104,5 @@ class SearchTree:
             self.get_leaf().expand(self.nn_model, input_builder)
 
     def get_move(self):
-        self.do_rollouts()
+        self.do_rollouts() # TODO: Add input builder here?
         return self.root_node.select_most_visited_child()
