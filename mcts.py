@@ -4,6 +4,7 @@ from random import choice
 
 
 def max_elements(iterable, key=lambda x: x):
+    """Return a list of the iterable's highest valued elements."""
     it = iter(iterable)
     max_item = next(it)
     max_item_key = key(max_item)
@@ -45,7 +46,7 @@ class Node:
         self.children = []
 
     def is_leaf(self):
-        return len(self.children) < 1
+        return len(self.children) == 0
 
     def add_child(self, child):
         child.parent = self
@@ -74,7 +75,7 @@ class Node:
     def expand(self, root_player, nn_model, prev_boards):
         if self.state.is_over():
             winner = self.state.get_winner()
-            score = 1 if winner == root_player else 0 if winner is None else -1
+            score = 1 if winner == root_player else (0 if winner is None else -1)
             self.add_and_propagate_score(score)
         else:
             # TODO: use the NN model to predict the score and policy values
@@ -86,7 +87,7 @@ class Node:
 DEFAULT_ROLLOUTS_PER_MOVE = 50
 
 
-class Tree:
+class SearchTree:
     def __init__(self, root_node, nn_model, prev_moves, rollouts_per_move=DEFAULT_ROLLOUTS_PER_MOVE):
         self.root_node = root_node
         self.nn_model = nn_model
