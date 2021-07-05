@@ -1,4 +1,4 @@
-from checkers import Game
+from checkers.game import Game
 
 class TrainingSession:
     def __init__(self, game_count):
