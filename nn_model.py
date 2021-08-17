@@ -1,11 +1,13 @@
+import numpy as np
+import tensorflow as tf
 from keras import backend, regularizers
+from keras.layers import add, BatchNormalization, Conv2D, Dense, Flatten, Input, LeakyReLU
 from keras.models import load_model, Model as KerasModel
 from keras.optimizers import SGD
-from keras.layers import add, BatchNormalization, Conv2D, Dense, Flatten, Input, LeakyReLU
 
-import tensorflow as tf
-import numpy as np
-
+# 32 pieces, 8 last game states, 4 different piece types (white/black X men/kings)
+# 1 (7x4) layer to describe the current player
+# 1 (7x4) layer to encode the number of moves without a capture
 INPUT_DIMENSIONS = (34, 8, 4)
 OUTPUT_DIMENSIONS = 8 * 8 * 4
 RESIDUAL_LAYER_COUNT = 11
@@ -13,7 +15,12 @@ CONV_KERNEL_COUNT = 75
 CONV_KERNEL_SIZE = (4, 4)
 LEARNING_RATE = 0.1
 MOMENTUM = 0.9
-REG_CONST = 0.0001
+
+DEFAULT_REGULARIZER = regularizers.l2(0.0001)
+CONV2D_DEFAULT_OPTIONS = {
+    "data_format": "channels_first", "padding": "same", "use_bias": False,
+    "activation": "linear", "kernel_regularizer": DEFAULT_REGULARIZER
+}
 
 
 def create_batch_norm_and_leaky_relu(layer):
@@ -22,11 +29,7 @@ def create_batch_norm_and_leaky_relu(layer):
 
 
 def create_hidden_conv(layer):
-    return Conv2D(
-        filters=CONV_KERNEL_COUNT, kernel_size=CONV_KERNEL_SIZE,
-        data_format="channels_first", padding="same", use_bias=False,
-        activation="linear", kernel_regularizer=regularizers.l2(REG_CONST)
-    )(layer)
+    return Conv2D(filters=CONV_KERNEL_COUNT, kernel_size=CONV_KERNEL_SIZE, **CONV2D_DEFAULT_OPTIONS)(layer)
 
 
 def create_convolutional(layer):
@@ -47,31 +50,24 @@ def create_residual(layer):
 
 
 def create_value_head(layer):
-    layer = Conv2D(
-        filters=1, kernel_size=(1, 1), data_format="channels_first", padding="same",
-        use_bias=False, activation="linear", kernel_regularizer=regularizers.l2(REG_CONST)
-    )(layer)
+    layer = Conv2D(filters=1, kernel_size=(1, 1), **CONV2D_DEFAULT_OPTIONS)(layer)
 
     layer = create_batch_norm_and_leaky_relu(layer)
     layer = Flatten()(layer)
-    layer = Dense(20, use_bias=False, activation="linear", kernel_regularizer=regularizers.l2(REG_CONST))(layer)
+    layer = Dense(20, use_bias=False, activation="linear", kernel_regularizer=DEFAULT_REGULARIZER)(layer)
 
     layer = LeakyReLU()(layer)
-    return Dense(1, use_bias=False, activation="tanh", kernel_regularizer=regularizers.l2(REG_CONST),
-                 name="value_head")(layer)
+    return Dense(1, use_bias=False, activation="tanh", kernel_regularizer=DEFAULT_REGULARIZER, name="value_head")(layer)
 
 
 def create_policy_head(layer):
-    layer = Conv2D(
-        filters=2, kernel_size=(1, 1), data_format="channels_first", padding="same",
-        use_bias=False, activation="linear", kernel_regularizer=regularizers.l2(REG_CONST)
-    )(layer)
+    layer = Conv2D(filters=2, kernel_size=(1, 1), **CONV2D_DEFAULT_OPTIONS)(layer)
 
     layer = create_batch_norm_and_leaky_relu(layer)
     layer = Flatten()(layer)
     return Dense(
         OUTPUT_DIMENSIONS, use_bias=False, activation="linear",
-        kernel_regularizer=regularizers.l2(REG_CONST), name="policy_head"
+        kernel_regularizer=DEFAULT_REGULARIZER, name="policy_head"
     )(layer)
 
 
@@ -89,10 +85,6 @@ def softmax_cross_entropy_with_logits(y_true, y_pred):
 
 
 class NeuralNetModel:
-    # 32 pieces, 7 last game states, 4 different piece types (white/black X men/kings)
-    # 1 (7x4) layer to describe the current player
-    # 1 (7x4) layer to encode the number of moves without a capture
-
     def __init__(self, weights_file=None):
         backend.clear_session()
 
