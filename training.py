@@ -1,5 +1,6 @@
 from checkers.game import Game
 
+
 class TrainingSession:
     def __init__(self, game_count):
         self.game_count = game_count

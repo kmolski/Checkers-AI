@@ -5,12 +5,12 @@ from random import choice
 
 def max_elements(iterable, key=lambda x: x):
     """Return a list of the iterable's highest valued elements."""
-    it = iter(iterable)
-    max_item = next(it)
+    iterator = iter(iterable)
+    max_item = next(iterator)
     max_item_key = key(max_item)
     result = [max_item]
 
-    for item in it:
+    for item in iterator:
         item_key = key(item)
         if item_key > max_item_key:
             max_item_key = item_key
@@ -24,9 +24,14 @@ def max_elements(iterable, key=lambda x: x):
 def ucs1_evaluator(exploration_factor, root_player, node):
     # https://en.wikipedia.org/wiki/Monte_Carlo_tree_search#Exploration_and_exploitation
     move_strength = node.net_score / max(1, node.visit_count)
-    exploration_part = (exploration_factor * node.policy_value *
-                        sqrt(log(node.parent.visit_count) / max(1, node.visit_count)))
-    return (1 if root_player == node.parent.player else -1) * move_strength + exploration_part
+    exploration_part = (
+        exploration_factor
+        * node.policy_value
+        * sqrt(log(node.parent.visit_count) / max(1, node.visit_count))
+    )
+    return (
+        1 if root_player == node.parent.player else -1
+    ) * move_strength + exploration_part
 
 
 DEFAULT_EXPLORATION = sqrt(2)
@@ -88,7 +93,13 @@ DEFAULT_ROLLOUTS_PER_MOVE = 50
 
 
 class SearchTree:
-    def __init__(self, root_node, nn_model, prev_moves, rollouts_per_move=DEFAULT_ROLLOUTS_PER_MOVE):
+    def __init__(
+        self,
+        root_node,
+        nn_model,
+        prev_moves,
+        rollouts_per_move=DEFAULT_ROLLOUTS_PER_MOVE,
+    ):
         self.root_node = root_node
         self.nn_model = nn_model
         self.rollouts_per_move = rollouts_per_move
@@ -100,9 +111,9 @@ class SearchTree:
         return node
 
     def do_rollouts(self, input_builder):
-        for i in range(self.rollouts_per_move):
+        for _ in range(self.rollouts_per_move):
             self.get_leaf().expand(self.nn_model, input_builder)
 
     def get_move(self):
-        self.do_rollouts() # TODO: Add input builder here?
+        self.do_rollouts()  # TODO: Add input builder here?
         return self.root_node.select_most_visited_child()
