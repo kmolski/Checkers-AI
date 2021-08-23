@@ -1,7 +1,9 @@
+import time
+
 import numpy as np
 import tensorflow as tf
-from keras import backend, regularizers
-from keras.layers import (
+from tensorflow.keras import backend, regularizers
+from tensorflow.keras.layers import (
     add,
     BatchNormalization,
     Conv2D,
@@ -10,8 +12,8 @@ from keras.layers import (
     Input,
     LeakyReLU,
 )
-from keras.models import load_model, Model as KerasModel
-from keras.optimizers import SGD
+from tensorflow.keras.models import load_model, Model as KerasModel
+from tensorflow.keras.optimizers import SGD
 
 # 32 pieces, 8 last game states, 4 different piece types (white/black X men/kings)
 # 1 (8x4) layer to describe the current player
@@ -123,7 +125,7 @@ class NeuralNetModel:
                 },
             )
         else:
-            self.weights_file = None
+            self.weights_file = f"weights_{time.strftime('%Y%m%d_%H%M%S')}"
             input_layer = Input(shape=INPUT_DIMENSIONS)
 
             # Convolutional layer
@@ -143,7 +145,7 @@ class NeuralNetModel:
                 inputs=[input_layer], outputs=[value_head, policy_head]
             )
             self.model.compile(
-                optimizer=SGD(lr=LEARNING_RATE, momentum=MOMENTUM),
+                optimizer=SGD(learning_rate=LEARNING_RATE, momentum=MOMENTUM),
                 loss={
                     "value_head": "mean_squared_error",
                     "policy_head": softmax_cross_entropy_with_logits,
