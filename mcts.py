@@ -1,6 +1,12 @@
+from copy import deepcopy
 from functools import partial
 from math import log, sqrt
 from random import choice
+
+import numpy as np
+
+from encoder import encode_game_state
+from decoder import get_move_id
 
 
 def max_elements(iterable, key=lambda x: x):
@@ -40,7 +46,7 @@ DEFAULT_EVALUATOR = partial(ucs1_evaluator, DEFAULT_EXPLORATION)
 
 class Node:
     def __init__(self, state, player):
-        self.state = state
+        self.state = deepcopy(state)
         self.player = player
 
         self.net_score = 0
@@ -77,16 +83,29 @@ class Node:
         if self.parent is not None:
             self.parent.add_and_propagate_score(score)
 
+    def move(self, move):
+        self.state.move(move)
+        self.player = self.state.whose_turn()
+        return self
+
     def expand(self, root_player, nn_model, prev_boards):
         if self.state.is_over():
             winner = self.state.get_winner()
             score = 1 if winner == root_player else (0 if winner is None else -1)
             self.add_and_propagate_score(score)
         else:
-            # TODO: use the NN model to predict the score and policy values
-            # TODO: update the net score of the current node with the prediction
-            # TODO: add legal moves to the node and get policy values for them
-            pass
+            prediction = nn_model.predict(
+                np.array([encode_game_state(self.state, prev_boards)])
+            )
+            self.add_and_propagate_score(
+                prediction["win_value"]
+                * (1 if self.state.whose_turn() == root_player else -1)
+            )
+
+            for m in self.state.get_possible_moves():
+                child = Node(self.state, None).move(m)
+                self.add_child(child)
+                child.policy_value = prediction["action_ps"][get_move_id(self.state, m)]
 
 
 DEFAULT_ROLLOUTS_PER_MOVE = 50
@@ -97,11 +116,12 @@ class SearchTree:
         self,
         root_node,
         nn_model,
-        prev_moves,
+        prev_boards,
         rollouts_per_move=DEFAULT_ROLLOUTS_PER_MOVE,
     ):
         self.root_node = root_node
         self.nn_model = nn_model
+        self.prev_boards = prev_boards
         self.rollouts_per_move = rollouts_per_move
 
     def get_leaf(self):
@@ -110,10 +130,11 @@ class SearchTree:
             node = node.select_best_child(self.root_node.player)
         return node
 
-    def do_rollouts(self, input_builder):
+    def do_rollouts(self):
+        root_player = self.root_node.player
         for _ in range(self.rollouts_per_move):
-            self.get_leaf().expand(self.nn_model, input_builder)
+            self.get_leaf().expand(root_player, self.nn_model, self.prev_boards)
 
     def get_move(self):
-        self.do_rollouts()  # TODO: Add input builder here?
+        self.do_rollouts()
         return self.root_node.select_most_visited_child()

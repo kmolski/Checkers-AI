@@ -45,7 +45,7 @@ def create_hidden_conv(layer):
     return Conv2D(
         filters=CONV_KERNEL_COUNT,
         kernel_size=CONV_KERNEL_SIZE,
-        **CONV2D_DEFAULT_OPTIONS
+        **CONV2D_DEFAULT_OPTIONS,
     )(layer)
 
 
