@@ -156,7 +156,8 @@ class NeuralNetModel:
     def persist_weights_to_file(self):
         self.model.save(self.weights_file)
 
-    def clear_keras_session(self):
+    @classmethod
+    def clear_keras_session(cls):
         backend.clear_session()
 
     def train(self, inputs, win_values, action_ps):
