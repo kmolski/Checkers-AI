@@ -20,10 +20,11 @@ def get_move_value(game, move, action_ps):
 
     is_capture = abs(diff_y) == 2
     towards_south = diff_y > 0
+
     if is_capture:
         towards_east = diff_x == 1
     else:
-        even_to_odd_y = (from_y % 2 == 0)
+        even_to_odd_y = from_y % 2 == 0
         towards_east = (diff_x == 1) if even_to_odd_y else (diff_x == 0)
 
     index = (

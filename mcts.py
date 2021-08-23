@@ -3,10 +3,8 @@ from functools import partial
 from math import log, sqrt
 from random import choice
 
-import numpy as np
-
-from encoder import encode_game_state
 from decoder import get_move_value
+from encoder import encode_game_state
 
 
 def max_elements(iterable, key=lambda x: x):
@@ -94,9 +92,7 @@ class Node:
             score = 1 if winner == root_player else (0 if winner is None else -1)
             self.add_and_propagate_score(score)
         else:
-            prediction = nn_model.predict(
-                np.array([encode_game_state(self.state, prev_boards)])
-            )
+            prediction = nn_model.predict(encode_game_state(self.state, prev_boards))
             self.add_and_propagate_score(
                 prediction["win_value"]
                 * (1 if self.state.whose_turn() == root_player else -1)

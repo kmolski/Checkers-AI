@@ -46,10 +46,9 @@ def encode_player_turn(turn):
 def encode_game_state(game, board_states):
     # Encode the 8 last board states
     input_data = encode_latest_board_states(game.whose_turn(), board_states[-8:])
-    # TODO: try to switch the following and see what happens:
     # Encode player turn
     input_data[32] = encode_player_turn(game.whose_turn())
     # Encode the number of turns without capturing moves
     input_data[33] = encode_turns_without_capturing_moves(game)
 
-    return input_data
+    return np.array([input_data])

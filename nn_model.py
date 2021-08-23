@@ -161,11 +161,13 @@ class NeuralNetModel:
         backend.clear_session()
 
     def train(self, inputs, win_values, action_ps):
-        output = {
-            "value_head": np.array(win_values),
-            "policy_head": np.array(action_ps),
-        }
-        self.model.fit(np.array(inputs), output)
+        self.model.fit(
+            np.array(inputs),
+            {
+                "value_head": np.array(win_values),
+                "policy_head": np.array(action_ps),
+            },
+        )
 
     def predict(self, input_data):
         output = self.model.predict(input_data)
