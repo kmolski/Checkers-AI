@@ -6,7 +6,7 @@ from random import choice
 import numpy as np
 
 from encoder import encode_game_state
-from decoder import get_move_id
+from decoder import get_move_value
 
 
 def max_elements(iterable, key=lambda x: x):
@@ -105,7 +105,9 @@ class Node:
             for m in self.state.get_possible_moves():
                 child = Node(self.state, None).move(m)
                 self.add_child(child)
-                child.policy_value = prediction["action_ps"][get_move_id(self.state, m)]
+                child.policy_value = get_move_value(
+                    self.state, m, prediction["action_ps"]
+                )
 
 
 DEFAULT_ROLLOUTS_PER_MOVE = 50
