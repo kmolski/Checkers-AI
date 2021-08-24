@@ -18,7 +18,7 @@ from tensorflow.keras.optimizers import SGD
 # 32 pieces, 8 last game states, 4 different piece types (white/black X men/kings)
 # 1 (8x4) layer to describe the current player
 # 1 (8x4) layer to encode the number of moves without a capture
-INPUT_DIMENSIONS = (34, 8, 4)
+INPUT_DIMENSIONS = (8, 4, 34)  # NHWC order
 OUTPUT_DIMENSIONS = 8 * 8 * 4
 RESIDUAL_LAYER_COUNT = 11
 CONV_KERNEL_COUNT = 75
@@ -28,7 +28,7 @@ MOMENTUM = 0.9
 
 DEFAULT_REGULARIZER = regularizers.l2(0.0001)
 CONV2D_DEFAULT_OPTIONS = {
-    "data_format": "channels_first",
+    "data_format": "channels_last",
     "padding": "same",
     "use_bias": False,
     "activation": "linear",
