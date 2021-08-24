@@ -29,13 +29,13 @@ def encode_turns_without_capturing_moves(game):
     moves = game.moves_since_last_capture
     digit_list_len = game.board.height * game.board.width
     bin_digit_list = [int(d) for d in list(f"{moves:b}".zfill(digit_list_len))]
-    return np.reshape(bin_digit_list, INPUT_DIMENSIONS[1:])
+    return np.reshape(bin_digit_list, INPUT_DIMENSIONS[:-1])
 
 
 def encode_player_turn(turn):
     if turn != 1:
-        return np.ones(INPUT_DIMENSIONS[1:], dtype=np.int)
-    return np.zeros(INPUT_DIMENSIONS[1:], dtype=np.int)
+        return np.ones(INPUT_DIMENSIONS[:-1], dtype=np.int)
+    return np.zeros(INPUT_DIMENSIONS[:-1], dtype=np.int)
 
 
 def encode_game_state(game, board_states):
