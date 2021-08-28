@@ -9,7 +9,7 @@ def align_coordinates(x, y, turn, board):
     return (x, y) if turn != 1 else (board.width - x - 1, board.height - y - 1)
 
 
-def get_layer_for_piece(piece, turn):
+def get_channel_for_piece(piece, turn):
     return ((piece.player != turn) * 2 + piece.king * 1) * 8
 
 
@@ -18,7 +18,7 @@ def encode_board_state(input_data, player_turn, turns_with_no_capture, offset, t
         pos = board_state.position_layout[y][x]
         piece = board_state.searcher.get_piece_by_position(pos)
         if piece:
-            layer_index = get_layer_for_piece(piece, turn)
+            layer_index = get_channel_for_piece(piece, turn)
             (x, y) = align_coordinates(x, y, turn, board_state)
             input_data[y][x][layer_index + offset] = 1
         input_data[y][x][32] = player_turn[y][x]
