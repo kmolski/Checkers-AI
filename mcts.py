@@ -45,7 +45,7 @@ def ucs1_evaluator(exploration_factor, root_player, node):
 DEFAULT_EXPLORATION = sqrt(2)
 DEFAULT_EVALUATOR = partial(ucs1_evaluator, DEFAULT_EXPLORATION)
 
-DEFAULT_ROLLOUTS_PER_MOVE = 50
+DEFAULT_ROLLOUTS_PER_MOVE = 25
 
 
 class Node:

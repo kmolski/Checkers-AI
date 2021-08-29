@@ -13,8 +13,8 @@ from nn_model import NeuralNetModel
 DEFAULT_MAX_CHUNK_SIZE = 1152
 DEFAULT_CHUNK_COUNT = 24
 
-DEFAULT_TRAINING_SESSIONS = 10
-DEFAULT_TRAINING_GAME_COUNT = 100
+DEFAULT_TRAINING_SESSIONS = 1
+DEFAULT_TRAINING_GAME_COUNT = 1
 
 DEFAULT_TOURNAMENT_COUNT = 20
 DEFAULT_GAMES_IN_TOURNAMENT = 100
@@ -95,7 +95,7 @@ class BaseTrainingSession:
 
             training_data.append(
                 {
-                    "input": encode_game_state(game, prev_boards),
+                    "input": encode_game_state(game, prev_boards)[0],
                     "player": current_player,
                     "action_ps": encode_action_ps(node),
                 }
