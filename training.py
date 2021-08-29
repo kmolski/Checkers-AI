@@ -1,6 +1,5 @@
 import logging
 from itertools import islice
-from multiprocessing import Process
 from os.path import join
 from random import shuffle
 
@@ -33,7 +32,7 @@ def get_chunk_size(data_len):
     return min(data_len // DEFAULT_CHUNK_COUNT, DEFAULT_MAX_CHUNK_SIZE)
 
 
-class BaseTrainingSession(Process):
+class BaseTrainingSession:
     def __init__(self, session_index, game_count=DEFAULT_TRAINING_GAME_COUNT):
         super().__init__()
         self.game_count = game_count
@@ -71,7 +70,7 @@ class BaseTrainingSession(Process):
     def play_games(self, nn_model):
         training_data = []
         for i in range(self.game_count):
-            logging.info(f"Training session {self.session_index}: playing game no. {i}")
+            logging.info(f"Training session {self.session_index}: playing game {i}")
             self.game_index = i
 
             game = Game()
@@ -91,9 +90,6 @@ class BaseTrainingSession(Process):
         agent2 = NeuralNetAgent(game, nn_model=nn_model)
 
         while not game.is_over():
-            logging.info(
-                f"Training session {self.session_index}, game {self.game_index}: making a move"
-            )
             current_player = agent1 if game.whose_turn() == 1 else agent2
             move, node = current_player.get_next_move(prev_boards)
 
@@ -124,5 +120,6 @@ class TournamentSession:
         self.game_count = game_count
 
     @classmethod
-    def train(cls):
-        pass
+    def train(cls, tournament_count=DEFAULT_TOURNAMENT_COUNT):
+        for i in range(tournament_count):
+            TournamentSession(i).run()
