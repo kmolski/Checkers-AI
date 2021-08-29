@@ -20,7 +20,8 @@ DEFAULT_TOURNAMENT_COUNT = 20
 DEFAULT_GAMES_IN_TOURNAMENT = 100
 
 
-def chunks(it, size):
+def chunks(iterable, size):
+    it = iter(iterable)
     while True:
         chunk = tuple(islice(it, size))
         if not chunk:
@@ -50,18 +51,26 @@ class BaseTrainingSession:
 
         nn_model = NeuralNetModel()
         nn_model.weights_file = self.weights_file
-        training_data = self.play_games(nn_model)
 
-        training_data_len = len(training_data)
+        training_data = self.play_games(nn_model)
         shuffle(training_data)
 
-        logging.info(f"Training session {self.session_index}: training neural net")
-        for chunk in chunks(training_data, get_chunk_size(training_data_len)):
+        training_data_len = len(training_data)
+        chunk_size = get_chunk_size(training_data_len)
+        chunk_count = training_data_len // chunk_size
+
+        logging.info(
+            f"Training session {self.session_index}: training neural net "
+            + f"with {chunk_count} chunks of data, {chunk_size} elements each"
+        )
+        for (index, chunk) in enumerate(chunks(training_data, chunk_size)):
             inputs = [datum["input"] for datum in chunk]
             win_values = [datum["win_value"] for datum in chunk]
             action_ps = [datum["action_ps"] for datum in chunk]
 
-            logging.info(f"Training session {self.session_index}: processing chunk")
+            logging.info(
+                f"Training session {self.session_index}: processing chunk {index}"
+            )
             nn_model.train(inputs, win_values, action_ps)
 
         logging.info(f"Training session {self.session_index}: saving weights")
