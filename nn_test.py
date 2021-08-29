@@ -6,15 +6,15 @@ import checkers.game
 
 ### NEURAL NET
 
-game = checkers.game.Game()
-nn = NeuralNetModel()
-
-print(game.moves)
-
-tree = SearchTree(Node(game, game.whose_turn()), nn)
-move = tree.get_next_move([])
-
-print(move.state.moves)
+# game = checkers.game.Game()
+# nn = NeuralNetModel()
+#
+# print(game.moves)
+#
+# tree = SearchTree(Node(game, game.whose_turn()), nn)
+# move = tree.get_next_move([])
+#
+# print(move.state.moves)
 
 ### BASE TRAINING
 

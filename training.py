@@ -58,9 +58,9 @@ class BaseTrainingSession(Process):
 
         logging.info(f"Training session {self.session_index}: training neural net")
         for chunk in chunks(training_data, get_chunk_size(training_data_len)):
-            inputs = (datum["input"] for datum in chunk)
-            win_values = (datum["win_value"] for datum in chunk)
-            action_ps = (datum["action_ps"] for datum in chunk)
+            inputs = [datum["input"] for datum in chunk]
+            win_values = [datum["win_value"] for datum in chunk]
+            action_ps = [datum["action_ps"] for datum in chunk]
 
             logging.info(f"Training session {self.session_index}: processing chunk")
             nn_model.train(inputs, win_values, action_ps)
@@ -115,10 +115,8 @@ class BaseTrainingSession(Process):
 
     @classmethod
     def train(cls, session_count=DEFAULT_TRAINING_SESSIONS):
-        processes = [BaseTrainingSession(i) for i in range(session_count)]
-
-        [p.start() for p in processes]
-        [p.join() for p in processes]
+        for i in range(session_count):
+            BaseTrainingSession(i).run()
 
 
 class TournamentSession:
