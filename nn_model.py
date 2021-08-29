@@ -1,4 +1,5 @@
 import time
+from os.path import join
 
 import numpy as np
 import tensorflow as tf
@@ -125,7 +126,9 @@ class NeuralNetModel:
                 },
             )
         else:
-            self.weights_file = f"data/unknown/weights_{time.strftime('%Y%m%d_%H%M%S')}"
+            self.weights_file = join(
+                "data", "unknown", f"weights_{time.strftime('%Y%m%d_%H%M%S')}"
+            )
 
             input_layer = Input(shape=INPUT_DIMENSIONS)
             shared_layers = create_convolutional(input_layer)

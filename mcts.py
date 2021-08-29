@@ -117,12 +117,10 @@ class SearchTree:
         self,
         root_node,
         nn_model,
-        prev_boards,
         rollouts_per_move=DEFAULT_ROLLOUTS_PER_MOVE,
     ):
         self.root_node = root_node
         self.nn_model = nn_model
-        self.prev_boards = prev_boards
         self.rollouts_per_move = rollouts_per_move
 
     def get_leaf(self):
@@ -131,11 +129,11 @@ class SearchTree:
             node = node.select_best_child(self.root_node.player)
         return node
 
-    def do_rollouts(self):
+    def do_rollouts(self, prev_boards):
         root_player = self.root_node.player
         for _ in range(self.rollouts_per_move):
-            self.get_leaf().expand(root_player, self.nn_model, self.prev_boards)
+            self.get_leaf().expand(root_player, self.nn_model, prev_boards)
 
-    def get_move(self):
-        self.do_rollouts()
+    def get_next_move(self, prev_boards):
+        self.do_rollouts(prev_boards)
         return self.root_node.select_most_visited_child()

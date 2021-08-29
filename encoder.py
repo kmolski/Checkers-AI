@@ -2,15 +2,20 @@ from itertools import product
 
 import numpy as np
 
-from nn_model import INPUT_DIMENSIONS
-
-
-def align_coordinates(x, y, turn, board):
-    return (x, y) if turn != 1 else (board.width - x - 1, board.height - y - 1)
+from decoder import get_move_index, align_coordinates
+from nn_model import INPUT_DIMENSIONS, OUTPUT_DIMENSIONS
 
 
 def get_channel_for_piece(piece, turn):
     return ((piece.player != turn) * 2 + piece.king * 1) * 8
+
+
+def encode_action_ps(node):
+    move = node.state.moves[-1]
+    ps = np.zeros(OUTPUT_DIMENSIONS, dtype=np.float32)
+    for index, child in ((get_move_index(c.state, move), c) for c in node.children):
+        ps[index] = child.visit_count / node.visit_count
+    return ps
 
 
 def encode_board_state(
