@@ -13,7 +13,9 @@ def get_channel_for_piece(piece, turn):
     return ((piece.player != turn) * 2 + piece.king * 1) * 8
 
 
-def encode_board_state(input_data, player_turn, turns_with_no_capture, offset, turn, board_state):
+def encode_board_state(
+    input_data, player_turn, turns_with_no_capture, offset, turn, board_state
+):
     for (y, x) in product(range(board_state.height), range(board_state.width)):
         pos = board_state.position_layout[y][x]
         piece = board_state.searcher.get_piece_by_position(pos)
@@ -47,6 +49,8 @@ def encode_game_state(game, board_states):
 
     # Encode the 8 last board states
     for index, board in enumerate(reversed(board_states[-8:])):
-        encode_board_state(input_data, player_turn, turns_with_no_capture, index, turn, board)
+        encode_board_state(
+            input_data, player_turn, turns_with_no_capture, index, turn, board
+        )
 
     return np.array([input_data])

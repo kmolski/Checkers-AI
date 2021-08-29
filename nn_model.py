@@ -20,7 +20,7 @@ from tensorflow.keras.optimizers import SGD
 # 1 (8x4) layer to encode the number of moves without a capture
 INPUT_DIMENSIONS = (8, 4, 34)  # NHWC order
 OUTPUT_DIMENSIONS = 8 * 8 * 4
-RESIDUAL_LAYER_COUNT = 11
+RESIDUAL_LAYER_COUNT = 7
 CONV_KERNEL_COUNT = 75
 CONV_KERNEL_SIZE = (4, 4)
 LEARNING_RATE = 0.1
