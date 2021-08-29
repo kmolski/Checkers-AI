@@ -7,6 +7,10 @@ from decoder import get_move_value
 from encoder import encode_game_state
 
 
+def adjust_score(player, winner):
+    return 1 if winner == player else (0 if winner is None else -1)
+
+
 def max_elements(iterable, key=lambda x: x):
     """Return a list of the iterable's highest valued elements."""
     iterator = iter(iterable)
@@ -91,7 +95,7 @@ class Node:
     def expand(self, root_player, nn_model, prev_boards):
         if self.state.is_over():
             winner = self.state.get_winner()
-            score = 1 if winner == root_player else (0 if winner is None else -1)
+            score = adjust_score(root_player, winner)
             self.add_and_propagate_score(score)
         else:
             prediction = nn_model.predict(encode_game_state(self.state, prev_boards))

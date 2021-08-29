@@ -125,20 +125,15 @@ class NeuralNetModel:
                 },
             )
         else:
-            self.weights_file = f"weights_{time.strftime('%Y%m%d_%H%M%S')}"
-            input_layer = Input(shape=INPUT_DIMENSIONS)
+            self.weights_file = f"data/unknown/weights_{time.strftime('%Y%m%d_%H%M%S')}"
 
-            # Convolutional layer
+            input_layer = Input(shape=INPUT_DIMENSIONS)
             shared_layers = create_convolutional(input_layer)
 
-            # Shared residual layers
             for _ in range(RESIDUAL_LAYER_COUNT):
                 shared_layers = create_residual(shared_layers)
 
-            # Value head
             value_head = create_value_head(shared_layers)
-
-            # Policy head
             policy_head = create_policy_head(shared_layers)
 
             self.model = KerasModel(
