@@ -37,10 +37,15 @@ class BaseTrainingSession(Process):
     def __init__(self, session_index, game_count=DEFAULT_TRAINING_GAME_COUNT):
         super().__init__()
         self.game_count = game_count
+        self.session_index = session_index
         self.weights_file = join("data", "base_training", f"weights_{session_index}")
-        logging.info(f"Starting training session {session_index}")
 
     def run(self):
+        logging.basicConfig(
+            format="[%(asctime)s] %(levelname)s: %(message)s", level=logging.INFO
+        )
+
+        logging.info(f"Starting training session {self.session_index}")
         logging.info("Gathering game data...")
 
         nn_model = NeuralNetModel()
