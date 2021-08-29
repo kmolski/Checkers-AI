@@ -3,9 +3,9 @@ from nn_model import NeuralNetModel
 
 
 class NeuralNetAgent:
-    def __init__(self, game, weights_file=None):
+    def __init__(self, game, nn_model=None, weights_file=None):
         self.game = game
-        self.nn_model = NeuralNetModel(weights_file)
+        self.nn_model = nn_model or NeuralNetModel(weights_file)
 
         root_node = Node(game, game.whose_turn())
         self.mcts = SearchTree(root_node, self.nn_model)

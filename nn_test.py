@@ -11,8 +11,7 @@ nn = NeuralNetModel()
 
 print(game.moves)
 
-root = Node(game, game.whose_turn())
-tree = SearchTree(root, nn)
+tree = SearchTree(Node(game, game.whose_turn()), nn)
 move = tree.get_next_move([])
 
 print(move.state.moves)
@@ -21,6 +20,8 @@ print(move.state.moves)
 
 from training import BaseTrainingSession
 
-logging.basicConfig(format="[%(asctime)s] %(levelname)s: %(message)s", level=logging.INFO)
+logging.basicConfig(
+    format="[%(asctime)s] %(levelname)s: %(message)s", level=logging.INFO
+)
 
 BaseTrainingSession.train()

@@ -1,5 +1,6 @@
 import logging
 from itertools import islice
+from multiprocessing import Process
 from os.path import join
 from random import shuffle
 
@@ -16,7 +17,7 @@ DEFAULT_CHUNK_COUNT = 24
 DEFAULT_TRAINING_SESSIONS = 10
 DEFAULT_TRAINING_GAME_COUNT = 100
 
-DEFAULT_TOURNAMENT_COUNT = 10
+DEFAULT_TOURNAMENT_COUNT = 20
 DEFAULT_GAMES_IN_TOURNAMENT = 100
 
 
@@ -32,20 +33,22 @@ def get_chunk_size(data_len):
     return min(data_len // DEFAULT_CHUNK_COUNT, DEFAULT_MAX_CHUNK_SIZE)
 
 
-class BaseTrainingSession:
+class BaseTrainingSession(Process):
     def __init__(self, session_index, game_count=DEFAULT_TRAINING_GAME_COUNT):
+        super().__init__()
         self.game_count = game_count
         self.weights_file = join("data", "base_training", f"weights_{session_index}")
+        logging.info(f"Starting training session {session_index}")
 
-    def train_neural_net(self):
+    def run(self):
         logging.info("Gathering game data...")
-        training_data = self.play_games()
-
-        training_data_len = len(training_data)
-        shuffle(training_data)
 
         nn_model = NeuralNetModel()
         nn_model.weights_file = self.weights_file
+        training_data = self.play_games(nn_model)
+
+        training_data_len = len(training_data)
+        shuffle(training_data)
 
         logging.info("Training the neural net...")
         for chunk in chunks(training_data, get_chunk_size(training_data_len)):
@@ -59,12 +62,12 @@ class BaseTrainingSession:
         logging.info("Saving neural net weights...")
         nn_model.persist_weights_to_file()
 
-    def play_games(self):
+    def play_games(self, nn_model):
         training_data = []
         for i in range(self.game_count):
             logging.info(f"Playing game no. {i}")
             game = Game()
-            game_training_data, winner = self.play_until_complete(game)
+            game_training_data, winner = self.play_until_complete(game, nn_model)
 
             for datum in game_training_data:
                 datum["win_value"] = adjust_score(datum["player"], winner)
@@ -72,12 +75,12 @@ class BaseTrainingSession:
 
         return training_data
 
-    def play_until_complete(self, game):
+    def play_until_complete(self, game, nn_model):
         prev_boards = []
         training_data = []
 
-        agent1 = NeuralNetAgent(game)
-        agent2 = NeuralNetAgent(game)
+        agent1 = NeuralNetAgent(game, nn_model=nn_model)
+        agent2 = NeuralNetAgent(game, nn_model=nn_model)
 
         while not game.is_over():
             logging.info(f"Making a move: {game.get_possible_moves()}")
@@ -102,10 +105,10 @@ class BaseTrainingSession:
 
     @classmethod
     def train(cls, session_count=DEFAULT_TRAINING_SESSIONS):
-        # TODO: parallelize this with multiprocessing
-        for i in range(session_count):
-            logging.info(f"Starting training session {i}")
-            BaseTrainingSession(i).train_neural_net()
+        processes = [BaseTrainingSession(i) for i in range(session_count)]
+
+        [p.start() for p in processes]
+        [p.join() for p in processes]
 
 
 class TournamentSession:
