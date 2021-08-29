@@ -160,10 +160,10 @@ class NeuralNetModel:
 
     def train(self, inputs, win_values, action_ps):
         self.model.fit(
-            np.array(inputs),
+            np.array(inputs, dtype=np.int),
             {
-                "value_head": np.array(win_values),
-                "policy_head": np.array(action_ps),
+                "value_head": np.array(win_values, dtype=np.float32),
+                "policy_head": np.array(action_ps, dtype=np.float32),
             },
         )
 

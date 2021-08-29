@@ -37,16 +37,17 @@ class BaseTrainingSession(Process):
     def __init__(self, session_index, game_count=DEFAULT_TRAINING_GAME_COUNT):
         super().__init__()
         self.game_count = game_count
-        self.session_index = session_index
         self.weights_file = join("data", "base_training", f"weights_{session_index}")
+
+        self.session_index = session_index
+        self.game_index = 0
 
     def run(self):
         logging.basicConfig(
             format="[%(asctime)s] %(levelname)s: %(message)s", level=logging.INFO
         )
 
-        logging.info(f"Starting training session {self.session_index}")
-        logging.info("Gathering game data...")
+        logging.info(f"Training session {self.session_index}: starting")
 
         nn_model = NeuralNetModel()
         nn_model.weights_file = self.weights_file
@@ -55,22 +56,24 @@ class BaseTrainingSession(Process):
         training_data_len = len(training_data)
         shuffle(training_data)
 
-        logging.info("Training the neural net...")
+        logging.info(f"Training session {self.session_index}: training neural net")
         for chunk in chunks(training_data, get_chunk_size(training_data_len)):
             inputs = (datum["input"] for datum in chunk)
             win_values = (datum["win_value"] for datum in chunk)
             action_ps = (datum["action_ps"] for datum in chunk)
 
-            logging.info("Processing training data chunk...")
+            logging.info(f"Training session {self.session_index}: processing chunk")
             nn_model.train(inputs, win_values, action_ps)
 
-        logging.info("Saving neural net weights...")
+        logging.info(f"Training session {self.session_index}: saving weights")
         nn_model.persist_weights_to_file()
 
     def play_games(self, nn_model):
         training_data = []
         for i in range(self.game_count):
-            logging.info(f"Playing game no. {i}")
+            logging.info(f"Training session {self.session_index}: playing game no. {i}")
+            self.game_index = i
+
             game = Game()
             game_training_data, winner = self.play_until_complete(game, nn_model)
 
@@ -88,7 +91,9 @@ class BaseTrainingSession(Process):
         agent2 = NeuralNetAgent(game, nn_model=nn_model)
 
         while not game.is_over():
-            logging.info(f"Making a move: {game.get_possible_moves()}")
+            logging.info(
+                f"Training session {self.session_index}, game {self.game_index}: making a move"
+            )
             current_player = agent1 if game.whose_turn() == 1 else agent2
             move, node = current_player.get_next_move(prev_boards)
 
