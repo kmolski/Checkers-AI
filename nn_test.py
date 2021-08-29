@@ -9,6 +9,6 @@ print(game.moves)
 
 root = Node(game, game.whose_turn())
 tree = SearchTree(root, nn, [])
-move = tree.get_move()
+move = tree.get_next_move()
 
 print(move.state.moves)
