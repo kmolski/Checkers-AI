@@ -97,6 +97,8 @@ class BaseTrainingSession:
 
         while not game.is_over():
             current_player = agent1 if game.whose_turn() == 1 else agent2
+            prev_boards.append(game.board)
+
             move, node = current_player.get_next_move(prev_boards)
 
             training_data.append(
@@ -107,7 +109,6 @@ class BaseTrainingSession:
                 }
             )
 
-            prev_boards.append(game.board)
             game.move(move)
 
             agent1.use_new_state(node)
@@ -202,6 +203,8 @@ class TournamentSession:
 
         while not game.is_over():
             current_player = challenger_agent if game.whose_turn() == 1 else best_agent
+            prev_boards.append(game.board)
+
             move, node = current_player.get_next_move(prev_boards)
 
             training_data.append(
@@ -212,7 +215,6 @@ class TournamentSession:
                 }
             )
 
-            prev_boards.append(game.board)
             game.move(move)
 
             challenger_agent.use_new_state(node)
