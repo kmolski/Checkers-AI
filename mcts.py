@@ -7,6 +7,10 @@ from decoder import get_move_value
 from encoder import encode_game_state
 
 
+def adjust_score(player, winner):
+    return 1 if winner == player else (0 if winner is None else -1)
+
+
 def max_elements(iterable, key=lambda x: x):
     """Return a list of the iterable's highest valued elements."""
     iterator = iter(iterable)
@@ -41,7 +45,7 @@ def ucs1_evaluator(exploration_factor, root_player, node):
 DEFAULT_EXPLORATION = sqrt(2)
 DEFAULT_EVALUATOR = partial(ucs1_evaluator, DEFAULT_EXPLORATION)
 
-DEFAULT_ROLLOUTS_PER_MOVE = 50
+DEFAULT_ROLLOUTS_PER_MOVE = 25
 
 
 class Node:
@@ -91,7 +95,7 @@ class Node:
     def expand(self, root_player, nn_model, prev_boards):
         if self.state.is_over():
             winner = self.state.get_winner()
-            score = 1 if winner == root_player else (0 if winner is None else -1)
+            score = adjust_score(root_player, winner)
             self.add_and_propagate_score(score)
         else:
             prediction = nn_model.predict(encode_game_state(self.state, prev_boards))
@@ -113,12 +117,10 @@ class SearchTree:
         self,
         root_node,
         nn_model,
-        prev_boards,
         rollouts_per_move=DEFAULT_ROLLOUTS_PER_MOVE,
     ):
         self.root_node = root_node
         self.nn_model = nn_model
-        self.prev_boards = prev_boards
         self.rollouts_per_move = rollouts_per_move
 
     def get_leaf(self):
@@ -127,11 +129,11 @@ class SearchTree:
             node = node.select_best_child(self.root_node.player)
         return node
 
-    def do_rollouts(self):
+    def do_rollouts(self, prev_boards):
         root_player = self.root_node.player
         for _ in range(self.rollouts_per_move):
-            self.get_leaf().expand(root_player, self.nn_model, self.prev_boards)
+            self.get_leaf().expand(root_player, self.nn_model, prev_boards)
 
-    def get_move(self):
-        self.do_rollouts()
+    def get_next_move(self, prev_boards):
+        self.do_rollouts(prev_boards)
         return self.root_node.select_most_visited_child()
