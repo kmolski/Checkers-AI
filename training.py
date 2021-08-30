@@ -125,10 +125,23 @@ class BaseTrainingSession:
 
 
 class TournamentSession:
-    def __init__(self, game_count=DEFAULT_GAMES_IN_TOURNAMENT):
+    def __init__(self, session_index, game_count=DEFAULT_GAMES_IN_TOURNAMENT):
+        super().__init__()
         self.game_count = game_count
 
     @classmethod
     def train(cls, tournament_count=DEFAULT_TOURNAMENT_COUNT):
-        for i in range(tournament_count):
-            TournamentSession(i).run()
+        best, *challengers = [NeuralNetModel(p) for p in Path(".").glob("data/base_training/*")]
+
+        for i in range(DEFAULT_TOURNAMENT_COUNT):
+            best, challengers_with_scores = TournamentSession(i).run(best, challengers)
+
+            challengers_with_scores.sort(key=lambda it: it[1])
+            best_score = challengers_with_scores[-1][1]
+            if best_score / DEFAULT_GAMES_IN_TOURNAMENT > 0.6:
+                new_best = challengers_with_scores.pop()[0]
+                challengers = [c[0] for c in challengers_with_scores] + [best]
+                best = new_best
+
+        best.weights_file = join("data", "tournaments", "best_weights")
+        best.persist_weights_to_file()
