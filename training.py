@@ -122,7 +122,7 @@ class BaseTrainingSession:
 
 
 class TournamentSession:
-    def __init__(self, session_index, game_count=DEFAULT_GAMES_IN_TOURNAMENT):
+    def __init__(self, session_index, game_count):
         super().__init__()
         self.game_count = game_count
 
@@ -136,7 +136,9 @@ class TournamentSession:
         challengers_with_scores = []
         for c in challengers:
             self.c_name = c.weights_file
-            logging.info(f"Tournament {self.session_index}: playing games against {self.c_name}")
+            logging.info(
+                f"Tournament {self.session_index}: playing games against {self.c_name}"
+            )
 
             training_data, challenger_win_count = self.play_games(best, c)
             shuffle(training_data)
@@ -168,11 +170,15 @@ class TournamentSession:
         challenger_win_count = 0
 
         for i in range(self.game_count):
-            logging.info(f"Tournament {self.session_index}, challenger {self.c_name}: playing game {i}")
+            logging.info(
+                f"Tournament {self.session_index}, challenger {self.c_name}: playing game {i}"
+            )
             self.game_index = i
 
             game = Game()
-            game_training_data, winner = self.play_until_complete(game, best, challenger)
+            game_training_data, winner = self.play_until_complete(
+                game, best, challenger
+            )
 
             if winner == 1:
                 challenger_win_count += 1
@@ -181,6 +187,10 @@ class TournamentSession:
                 datum["win_value"] = adjust_score(datum["player"], winner)
             training_data.extend(game_training_data)
 
+        logging.info(
+            f"Tournament {self.session_index}, challenger {self.c_name}:"
+            + f" win rate {challenger_win_count / self.game_count}"
+        )
         return training_data, challenger_win_count
 
     def play_until_complete(self, game, best, challenger):
@@ -211,19 +221,29 @@ class TournamentSession:
         return training_data, game.get_winner()
 
     @classmethod
-    def train(cls, tournament_count=DEFAULT_TOURNAMENT_COUNT):
-        best, *challengers = [NeuralNetModel(p) for p in Path(".").glob("data/base_training/*")]
+    def train(
+        cls,
+        tournament_count=DEFAULT_TOURNAMENT_COUNT,
+        game_count=DEFAULT_GAMES_IN_TOURNAMENT,
+    ):
+        best, *challengers = [
+            NeuralNetModel(p) for p in Path(".").glob("data/base_training/*")
+        ]
 
         for i in range(tournament_count):
             logging.info(f"Tournament {i}: starting")
-            challengers_with_scores = TournamentSession(i).run(best, challengers)
+            challengers_with_scores = TournamentSession(i, game_count).run(
+                best, challengers
+            )
 
             logging.info(f"Tournament {i}: picking new best net")
             challengers_with_scores.sort(key=lambda it: it[1])
             largest_win_count = challengers_with_scores[-1][1]
-            if largest_win_count / DEFAULT_GAMES_IN_TOURNAMENT > 0.6:
+            if largest_win_count / game_count > 0.6:
                 new_best = challengers_with_scores.pop()[0]
-                logging.info(f"Tournament {i}: got new best net: {new_best.weights_file}")
+                logging.info(
+                    f"Tournament {i}: got new best net: {new_best.weights_file}"
+                )
                 challengers = [c[0] for c in challengers_with_scores] + [best]
                 best = new_best
 
