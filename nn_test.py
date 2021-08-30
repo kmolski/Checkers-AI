@@ -4,7 +4,14 @@ from nn_model import NeuralNetModel
 from mcts import Node, SearchTree
 import checkers.game
 
-### NEURAL NET
+from training import BaseTrainingSession
+from training import TournamentSession
+
+logging.basicConfig(
+    format="[%(asctime)s] %(levelname)s: %(message)s", level=logging.INFO
+)
+
+# NEURAL NET TEST
 
 # game = checkers.game.Game()
 # nn = NeuralNetModel()
@@ -16,12 +23,10 @@ import checkers.game
 #
 # print(move.state.moves)
 
-### BASE TRAINING
+# BASE TRAINING
 
-from training import BaseTrainingSession
+# BaseTrainingSession.train()
 
-logging.basicConfig(
-    format="[%(asctime)s] %(levelname)s: %(message)s", level=logging.INFO
-)
+# TOURNAMENTS
 
-BaseTrainingSession.train()
+TournamentSession.train()
