@@ -1,5 +1,3 @@
-from itertools import product
-
 import numpy as np
 
 from decoder import get_move_index, align_coordinates
@@ -18,18 +16,15 @@ def encode_action_ps(node):
     return ps
 
 
-def encode_board_state(
-    input_data, player_turn, turns_with_no_capture, offset, turn, board_state
-):
-    for (y, x) in product(range(board_state.height), range(board_state.width)):
-        pos = board_state.position_layout[y][x]
-        piece = board_state.searcher.get_piece_by_position(pos)
-        if piece:
-            layer_index = get_channel_for_piece(piece, turn)
-            (x, y) = align_coordinates(x, y, turn, board_state)
-            input_data[y][x][layer_index + offset] = 1
-        input_data[y][x][32] = player_turn[y][x]
-        input_data[y][x][33] = turns_with_no_capture[y][x]
+def encode_board_state(input_data, offset, turn, board_state):
+    for y in range(INPUT_DIMENSIONS[0]):
+        for x in range(INPUT_DIMENSIONS[1]):
+            pos = board_state.position_layout[y][x]
+            piece = board_state.searcher.get_piece_by_position(pos)
+            if piece:
+                layer_index = get_channel_for_piece(piece, turn)
+                (x, y) = align_coordinates(x, y, turn, board_state)
+                input_data[y][x][layer_index + offset] = 1
 
 
 def encode_turns_without_capturing_moves(game):
@@ -54,8 +49,11 @@ def encode_game_state(game, board_states):
 
     # Encode the 8 last board states
     for index, board in enumerate(reversed(board_states[-8:])):
-        encode_board_state(
-            input_data, player_turn, turns_with_no_capture, index, turn, board
-        )
+        encode_board_state(input_data, index, turn, board)
+
+    for y in range(INPUT_DIMENSIONS[0]):
+        for x in range(INPUT_DIMENSIONS[1]):
+            input_data[y][x][32] = player_turn[y][x]
+            input_data[y][x][33] = turns_with_no_capture[y][x]
 
     return np.array([input_data])
