@@ -1,3 +1,4 @@
+import gc
 import logging
 from itertools import islice
 from os.path import join
@@ -70,8 +71,17 @@ class BaseTrainingSession:
             )
             nn_model.train(inputs, win_values, action_ps)
 
+            del inputs
+            del win_values
+            del action_ps
+            gc.collect()
+
         logging.info(f"Training session {self.session_index}: saving weights")
         nn_model.persist_weights_to_file()
+
+        del training_data
+        del nn_model
+        gc.collect()
 
     def play_games(self, nn_model):
         training_data = []
@@ -85,6 +95,7 @@ class BaseTrainingSession:
             for datum in game_training_data:
                 datum["win_value"] = adjust_score(datum["player"], winner)
             training_data.extend(game_training_data)
+            del game_training_data
 
         return training_data
 
@@ -118,6 +129,7 @@ class BaseTrainingSession:
             f"Training session {self.session_index}: game.moves_since_last_capture: {game.moves_since_last_capture}, game.get_winner(): {game.get_winner()}"
         )
 
+        del prev_boards
         return training_data, game.get_winner()
 
     @classmethod
@@ -167,7 +179,15 @@ class TournamentSession:
                 best.train(inputs, win_values, action_ps)
                 c.train(inputs, win_values, action_ps)
 
+                del inputs
+                del win_values
+                del action_ps
+                gc.collect()
+
             challengers_with_scores.append((c, challenger_win_count))
+            del training_data
+            gc.collect()
+
         return challengers_with_scores
 
     def play_games(self, best, challenger):
@@ -191,6 +211,7 @@ class TournamentSession:
             for datum in game_training_data:
                 datum["win_value"] = adjust_score(datum["player"], winner)
             training_data.extend(game_training_data)
+            del game_training_data
 
         logging.info(
             f"Tournament {self.session_index}, challenger {self.c_name}:"
@@ -224,6 +245,7 @@ class TournamentSession:
             challenger_agent.use_new_state(node)
             best_agent.use_new_state(node)
 
+        del prev_boards
         return training_data, game.get_winner()
 
     @classmethod
@@ -252,6 +274,9 @@ class TournamentSession:
                 )
                 challengers = [c[0] for c in challengers_with_scores] + [best]
                 best = new_best
+
+            del challengers_with_scores
+            gc.collect()
 
         best.weights_file = join("data", "tournaments", "best_weights")
         best.persist_weights_to_file()
