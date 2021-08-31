@@ -114,6 +114,10 @@ class BaseTrainingSession:
             agent1.use_new_state(node)
             agent2.use_new_state(node)
 
+        logging.info(
+            f"Training session {self.session_index}: game.moves_since_last_capture: {game.moves_since_last_capture}, game.get_winner(): {game.get_winner()}"
+        )
+
         return training_data, game.get_winner()
 
     @classmethod
