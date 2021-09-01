@@ -23,8 +23,11 @@ class NeuralNetAgent:
         self.mcts.root_node = node
 
     def get_node_for_move(self, move):
-        root_children = self.mcts.root_node.children
-        return next(filter(lambda n: n.state.moves[-1] == move, root_children))
+        try:
+            root_children = self.mcts.root_node.children
+            return next(filter(lambda n: n.state.moves[-1] == move, root_children))
+        except StopIteration:
+            return self.mcts.root_node.children[0]
 
 
 class HumanAgent:
