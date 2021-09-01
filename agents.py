@@ -27,7 +27,7 @@ class NeuralNetAgent:
             root_children = self.mcts.root_node.children
             return next(filter(lambda n: n.state.moves[-1] == move, root_children))
         except StopIteration:
-            return self.mcts.root_node.children[0]
+            return Node(self.mcts.root_node.state, None).move(move)
 
 
 class HumanAgent:
