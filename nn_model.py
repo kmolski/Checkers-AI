@@ -13,8 +13,8 @@ from tensorflow.keras.layers import (
     Input,
     LeakyReLU,
 )
-from tensorflow.keras.models import load_model, Model as KerasModel
 from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.models import load_model, Model
 
 # 32 pieces, 8 last game states, 4 different piece types (white/black X men/kings)
 # 1 (8x4) layer to describe the current player
@@ -139,7 +139,7 @@ class NeuralNetModel:
             value_head = create_value_head(shared_layers)
             policy_head = create_policy_head(shared_layers)
 
-            self.model = KerasModel(
+            self.model = Model(
                 inputs=[input_layer], outputs=[value_head, policy_head]
             )
             self.model.compile(
