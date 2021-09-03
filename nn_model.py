@@ -139,9 +139,7 @@ class NeuralNetModel:
             value_head = create_value_head(shared_layers)
             policy_head = create_policy_head(shared_layers)
 
-            self.model = Model(
-                inputs=[input_layer], outputs=[value_head, policy_head]
-            )
+            self.model = Model(inputs=[input_layer], outputs=[value_head, policy_head])
             self.model.compile(
                 optimizer=SGD(learning_rate=LEARNING_RATE, momentum=MOMENTUM),
                 loss={
@@ -157,6 +155,9 @@ class NeuralNetModel:
     @classmethod
     def clear_keras_session(cls):
         backend.clear_session()
+
+    def clone(self):
+        return NeuralNetModel(self.weights_file)
 
     def train(self, inputs, win_values, action_ps):
         self.model.fit(
