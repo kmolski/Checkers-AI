@@ -7,7 +7,8 @@ from constants import WIDTH, HEIGHT, BLACK, RED, ROWS, COLS, SQUARE_SIZE, WHITE,
 
 
 class Frontend:
-    def __init__(self):
+    def __init__(self, real_players):
+        pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption('Checkers')
 
@@ -15,7 +16,7 @@ class Frontend:
         self.running = True
         self.selected_piece = None
         self.possible_move_targets = []
-        self.rotate = True
+        self.real_players = real_players
 
     def loop(self):
         while self.running:
@@ -34,6 +35,10 @@ class Frontend:
                     self._handle_click()
 
         if self.game.is_over():
+            # font = pygame.font.Font(None, 64)
+            # txt_surf = font.render('text', True, pygame.Color('seagreen1'))
+            # self.screen.blit(txt_surf, (30, 60))
+            pygame.display.update()
             time.sleep(3)
 
     def _draw(self):
@@ -58,6 +63,7 @@ class Frontend:
             color = RED if piece.player == 1 else BLUE
             if piece == self.selected_piece:
                 pygame.draw.circle(self.screen, GREEN, (x, y), radius + 10)
+
             pygame.draw.circle(self.screen, GREY, (x, y), radius + OUTLINE)
             pygame.draw.circle(self.screen, color, (x, y), radius)
             if piece.king:
@@ -99,6 +105,10 @@ class Frontend:
         return None
 
     def _handle_click(self):
+        if self.game.whose_turn() not in self.real_players:
+            self._ai_move()
+            return
+
         pos = pygame.mouse.get_pos()
         square = self._mouse_pos_to_square(pos)
         piece = self._find_piece(square)
@@ -115,12 +125,10 @@ class Frontend:
                 print(move)
                 print(self.game.get_possible_moves())
 
-        #print(piece)
-        #self.game.move(self.game.get_possible_moves()[-1]) #lol algorytm bardzo naiwny
-
     def _update_caption(self):
         if self.game.is_over():
             pygame.display.set_caption(f'Checkers - player {self._player_to_str(self.game.get_winner())} won!')
+            print(f'Checkers - player {self._player_to_str(self.game.get_winner())} won!')
         else:
             pygame.display.set_caption(f'Checkers - player {self._player_to_str(self.game.whose_turn())}')
 
@@ -135,3 +143,6 @@ class Frontend:
             moves = piece.get_possible_positional_moves() + piece.get_possible_capture_moves()
             legal_moves = [m for m in self.game.get_possible_moves() if m in moves]
             self.possible_move_targets = [m[1] for m in legal_moves]
+
+    def _ai_move(self):
+        self.game.move(self.game.get_possible_moves()[-1]) #TODO: not that
