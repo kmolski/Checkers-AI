@@ -14,11 +14,11 @@ from tensorflow.keras.layers import (
     LeakyReLU,
 )
 from tensorflow.keras.optimizers import SGD
-from tensorflow.keras.models import load_model, Model
+from tensorflow.keras.models import clone_model, load_model, Model
 
 # 32 pieces, 8 last game states, 4 different piece types (white/black X men/kings)
-# 1 (8x4) layer to describe the current player
-# 1 (8x4) layer to encode the number of moves without a capture
+# 1 (8x4) channel to describe the current player
+# 1 (8x4) channel to encode the number of moves without a capture
 INPUT_DIMENSIONS = (8, 4, 34)  # NHWC order
 OUTPUT_DIMENSIONS = 8 * 8 * 4
 RESIDUAL_LAYER_COUNT = 7
@@ -114,10 +114,17 @@ def softmax_cross_entropy_with_logits(y_true, y_pred):
 
 
 class NeuralNetModel:
-    def __init__(self, weights_file=None):
+    def __init__(self, weights_file=None, keras_model=None):
         backend.clear_session()
 
-        if weights_file is not None:
+        if keras_model is not None:
+            self.weights_file = join(
+                "data", "unknown", f"weights_{time.strftime('%Y%m%d_%H%M%S')}"
+            )
+            self.model = clone_model(keras_model)
+            self.__compile_keras_model()
+            self.model.set_weights(keras_model.get_weights())
+        elif weights_file is not None:
             self.weights_file = weights_file
             self.model = load_model(
                 weights_file,
@@ -140,14 +147,17 @@ class NeuralNetModel:
             policy_head = create_policy_head(shared_layers)
 
             self.model = Model(inputs=[input_layer], outputs=[value_head, policy_head])
-            self.model.compile(
-                optimizer=SGD(learning_rate=LEARNING_RATE, momentum=MOMENTUM),
-                loss={
-                    "value_head": "mean_squared_error",
-                    "policy_head": softmax_cross_entropy_with_logits,
-                },
-                loss_weights={"value_head": 0.5, "policy_head": 0.5},
-            )
+            self.__compile_keras_model()
+
+    def __compile_keras_model(self):
+        self.model.compile(
+            optimizer=SGD(learning_rate=LEARNING_RATE, momentum=MOMENTUM),
+            loss={
+                "value_head": "mean_squared_error",
+                "policy_head": softmax_cross_entropy_with_logits,
+            },
+            loss_weights={"value_head": 0.5, "policy_head": 0.5},
+        )
 
     def persist_weights_to_file(self):
         self.model.save(self.weights_file)
@@ -155,9 +165,6 @@ class NeuralNetModel:
     @classmethod
     def clear_keras_session(cls):
         backend.clear_session()
-
-    def clone(self):
-        return NeuralNetModel(self.weights_file)
 
     def train(self, inputs, win_values, action_ps):
         self.model.fit(

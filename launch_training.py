@@ -8,9 +8,7 @@ logging.basicConfig(
 )
 
 # BASE TRAINING
-
 BaseTrainingSession.train()
 
 # TOURNAMENTS
-
 TournamentSession.train()
