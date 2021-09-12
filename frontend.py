@@ -115,9 +115,9 @@ class Frontend:
             return
 
         #rightclick
-        if button == 2:
+        if button == 3:
             move = random.choice(self.game.get_possible_moves())
-            self._process_player_move()
+            self._process_player_move(move)
             return
 
         pos = pygame.mouse.get_pos()
