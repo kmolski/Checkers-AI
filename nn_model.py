@@ -13,7 +13,7 @@ from tensorflow.keras.layers import (
     Input,
     LeakyReLU,
 )
-from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras.models import clone_model, load_model, Model
 
 # 32 pieces, 8 last game states, 4 different piece types (white/black X men/kings)
@@ -151,7 +151,7 @@ class NeuralNetModel:
 
     def __compile_keras_model(self):
         self.model.compile(
-            optimizer=SGD(learning_rate=LEARNING_RATE, momentum=MOMENTUM),
+            optimizer=RMSprop(learning_rate=LEARNING_RATE, momentum=MOMENTUM),
             loss={
                 "value_head": "mean_squared_error",
                 "policy_head": softmax_cross_entropy_with_logits,

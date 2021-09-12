@@ -147,6 +147,7 @@ class TournamentSession:
         self.session_index = session_index
         self.c_name = ""
         self.game_index = 0
+        self.c_turn = None
 
     def run(self, best):
         logging.info(f"Tournament {self.session_index}: gathering training data")
@@ -197,7 +198,7 @@ class TournamentSession:
                 game, best, challenger
             )
 
-            if winner == 1:
+            if winner == self.c_turn:
                 challenger_win_count += 1
 
             for datum in game_training_data:
@@ -211,19 +212,20 @@ class TournamentSession:
         prev_boards = []
         training_data = []
 
+        self.c_turn = self.game_index % 2 + 1
         challenger_agent = NeuralNetAgent(game, nn_model=challenger)
         best_agent = NeuralNetAgent(game, nn_model=best)
 
         while not game.is_over():
-            current_player = challenger_agent if game.whose_turn() == 1 else best_agent
+            current = challenger_agent if game.whose_turn() == self.c_turn else best_agent
             prev_boards.append(game.board)
 
-            move, node = current_player.get_next_move(prev_boards)
+            move, node = current.get_next_move(prev_boards)
 
             training_data.append(
                 {
                     "input": encode_game_state(game, prev_boards)[0],
-                    "player": current_player,
+                    "player": current,
                     "action_ps": encode_action_ps(node),
                 }
             )
@@ -234,8 +236,9 @@ class TournamentSession:
             best_agent.use_new_state(node)
 
         logging.info(
-            f"Tournament {self.session_index}: game.moves_since_last_capture: "
-            + f"{game.moves_since_last_capture}, game.get_winner(): {game.get_winner()}"
+            f"Tournament {self.session_index}: " +
+            f"moves since last capture: {game.moves_since_last_capture}, " +
+            f"winner: {'challenger' if game.get_winner() == self.c_turn else 'best'}"
         )
 
         del prev_boards
