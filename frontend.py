@@ -116,7 +116,8 @@ class Frontend:
 
         #rightclick
         if button == 2:
-            self.game.move(random.choice(self.game.get_possible_moves()))
+            move = random.choice(self.game.get_possible_moves())
+            self._process_player_move()
             return
 
         pos = pygame.mouse.get_pos()
@@ -128,11 +129,15 @@ class Frontend:
 
         if square in self.possible_move_targets:
             move = [self.selected_piece.position, square]
-            node = self.nn_agent.get_node_for_move(move)
-            self.game.move(move)
-            self.possible_move_targets = []
+            self._process_player_move(move)
 
-            self.nn_agent.use_new_state(node)
+
+    def _process_player_move(self, move):
+        node = self.nn_agent.get_node_for_move(move)
+        self.game.move(move)
+        self.possible_move_targets = []
+        self.nn_agent.use_new_state(node)
+
 
     def _update_caption(self):
         if self.game.is_over():
