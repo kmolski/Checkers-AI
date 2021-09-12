@@ -1,3 +1,4 @@
+import random
 import time
 
 import pygame
@@ -37,12 +38,9 @@ class Frontend:
                     self.running = False
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    self._handle_click()
+                    self._handle_click(event.button)
 
         if self.game.is_over():
-            # font = pygame.font.Font(None, 64)
-            # txt_surf = font.render('text', True, pygame.Color('seagreen1'))
-            # self.screen.blit(txt_surf, (30, 60))
             pygame.display.update()
             time.sleep(3)
 
@@ -109,11 +107,16 @@ class Frontend:
 
         return None
 
-    def _handle_click(self):
+    def _handle_click(self, button):
         self.prev_boards.append(self.game.board)
 
         if self.game.whose_turn() not in self.real_players:
             self._ai_move()
+            return
+
+        #rightclick
+        if button == 2:
+            self.game.move(random.choice(self.game.get_possible_moves()))
             return
 
         pos = pygame.mouse.get_pos()
@@ -124,22 +127,19 @@ class Frontend:
             return
 
         if square in self.possible_move_targets:
-            try:
-                move = [self.selected_piece.position, square]
-                node = self.nn_agent.get_node_for_move(move)
-                self.game.move(move)
-                self.possible_move_targets = []
+            move = [self.selected_piece.position, square]
+            node = self.nn_agent.get_node_for_move(move)
+            self.game.move(move)
+            self.possible_move_targets = []
 
-                self.nn_agent.use_new_state(node)
-            except ValueError:
-                print(self.game.get_possible_moves())
+            self.nn_agent.use_new_state(node)
 
     def _update_caption(self):
         if self.game.is_over():
-            pygame.display.set_caption(f'Checkers - player {self._player_to_str(self.game.get_winner())} won!')
+            pygame.display.set_caption(f'Checkers - {self._player_to_str(self.game.get_winner())} won!')
             print(f'Checkers - player {self._player_to_str(self.game.get_winner())} won!')
         else:
-            pygame.display.set_caption(f'Checkers - player {self._player_to_str(self.game.whose_turn())}')
+            pygame.display.set_caption(f'Checkers - {self._player_to_str(self.game.whose_turn())}')
 
     def _player_to_str(self, player_num):
         if player_num == 1:
@@ -147,7 +147,7 @@ class Frontend:
         elif player_num == 2:
             return "BLUE"
         else:
-            return "ERROR"
+            return "NOBODY"
 
     def _select(self, piece):
         if piece.player == self.game.whose_turn():
