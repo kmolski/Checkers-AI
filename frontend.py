@@ -6,8 +6,7 @@ from constants import WIDTH, HEIGHT, BLACK, RED, ROWS, COLS, SQUARE_SIZE, WHITE,
     GREEN
 
 from agents import NeuralNetAgent
-from nn_model import NeuralNetModel
-from mcts import Node
+
 
 class Frontend:
     def __init__(self, real_players):
@@ -21,7 +20,7 @@ class Frontend:
         self.possible_move_targets = []
         self.real_players = real_players
 
-        self.nn_agent = NeuralNetAgent(game, weights_file="data/tournaments/best_weights")
+        self.nn_agent = NeuralNetAgent(self.game, weights_file="data_sgd/base_training/weights_0")
         self.prev_boards = []
 
     def loop(self):
@@ -126,15 +125,13 @@ class Frontend:
 
         if square in self.possible_move_targets:
             try:
-                node = self.nn_agent.get_node_for_move(move)
-
                 move = [self.selected_piece.position, square]
+                node = self.nn_agent.get_node_for_move(move)
                 self.game.move(move)
                 self.possible_move_targets = []
 
                 self.nn_agent.use_new_state(node)
             except ValueError:
-                print(move)
                 print(self.game.get_possible_moves())
 
     def _update_caption(self):
@@ -145,9 +142,12 @@ class Frontend:
             pygame.display.set_caption(f'Checkers - player {self._player_to_str(self.game.whose_turn())}')
 
     def _player_to_str(self, player_num):
-        if player_num == 1: return "RED"
-        elif player_num == 2: return "BLUE"
-        else: return "ERROR"
+        if player_num == 1:
+            return "RED"
+        elif player_num == 2:
+            return "BLUE"
+        else:
+            return "ERROR"
 
     def _select(self, piece):
         if piece.player == self.game.whose_turn():
@@ -157,6 +157,6 @@ class Frontend:
             self.possible_move_targets = [m[1] for m in legal_moves]
 
     def _ai_move(self):
-        move, node = self.nn_agent.get_next_move(prev_boards)
+        move, node = self.nn_agent.get_next_move(self.prev_boards)
         self.game.move(move)
         self.nn_agent.use_new_state(node)
