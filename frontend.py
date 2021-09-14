@@ -21,7 +21,7 @@ class Frontend:
         self.possible_move_targets = []
         self.real_players = real_players
 
-        self.nn_agent = NeuralNetAgent(self.game, weights_file="data/base_training/weights_5")
+        self.nn_agent = NeuralNetAgent(self.game, weights_file="data/tournaments/best_weights")
         self.prev_boards = []
 
     def loop(self):
