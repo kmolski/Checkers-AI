@@ -6,12 +6,12 @@ from agents import NeuralNetAgent
 from mcts import Node
 from nn_model import NeuralNetModel
 
-nn_wins = 0
-nn_model = NeuralNetModel("data/tournaments/best_weights")
+NN_WINS = 0
+NN_MODEL = NeuralNetModel("data/tournaments/best_weights")
 
 for i in range(100):
     game = Game()
-    nn_agent = NeuralNetAgent(game, nn_model=nn_model)
+    nn_agent = NeuralNetAgent(game, nn_model=NN_MODEL)
 
     prev_boards = []
     while not game.is_over():
@@ -27,7 +27,7 @@ for i in range(100):
             game.move(move)
             nn_agent.use_new_state(node)
     if game.get_winner() != 1:
-        nn_wins += 1
+        NN_WINS += 1
     print(f"{'random' if game.get_winner() == 1 else 'neural net'} won")
 
-print(f"neural net win rate: {nn_wins}%")
+print(f"neural net win rate: {NN_WINS}%")
